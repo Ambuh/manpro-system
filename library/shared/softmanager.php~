@@ -1,0 +1,395 @@
+<?php
+function softmanager(){
+
+	 return new softwareHandler();
+
+}
+class softwareHandler{
+	public $db;
+	public function __construct(){
+	
+		GLOBAL $db;
+		$this->db=$db;
+	}
+	public function softwareInitialisation($client_id,$software_id,$machine_details="mydets",$copy_id=""){
+		
+		$results=new name_value;
+		
+		$software_details=NULL;
+		
+		
+		$client_softwares=$this->getClientsSoftwares($client_id," and software_id=".$software_id);
+		
+		for($i=0;$i<count($client_softwares);$i++){
+		
+			$software_details=$client_softwares[$i];
+			
+		}
+		
+		//if software is not registered
+		if($software_details==NULL){
+			
+			$this->registerSoftware($client_id,$software_id,$machine_details,$copy_id,true);
+			
+			$client_softwares=$this->getClientsSoftwares($client_id," and software_id=".$software_id);
+			
+			for($i=0;$i<count($client_softwares);$i++){
+		
+			$software_details=$client_softwares[$i];
+			
+		        }
+			
+		}
+		
+		$clientcopies=$this->getClientSoftwareCopies($client_id,$software_id," and copycode='".$copy_id."'");
+		
+		if(count($clientcopies)>0){
+		
+			if($client_copies[0]->software_status==1){
+			
+				$results->name=true;
+				$results->value="";
+				return $results;
+				
+			}else{
+			
+				$results->name=false;
+				$results->value="This copy of {$software_details->software_name} is deactivated. Please contact your software vendor.";
+				return $results;
+				
+			}
+				
+		}else{
+			
+			$total_copies=$this->getClientSoftwareCopies($client_id,$software_id);
+			
+		        if(count($total_copies)>=$software_details->software_maxCopies){
+		        
+		        	$results->name=false;
+		        	$results->value=" Cannot activate this copy of {$software_details->software_name}. You have already installed {$software_details->software_maxCopies} of {$software_details->software_maxCopies} copies allowed.Please contact your software vendor to change your maximum copy limit.";
+		        	
+		        	return $results;
+		        	
+		        }else{
+		        
+		        	$this->registerCopy($client_id,$software_id,$copy_id,$machine_details);
+		        	
+		        	$results->name=true;
+		        	$results->value="Copy registered successfully";
+		        	
+		        	return $results;
+		        	
+		        }
+		
+		}
+		
+		
+	}
+        public function getSoftwareList($whereclause=""){
+	
+        	$resource=$this->db->selectQuery(array("*"),"softwares",$whereclause);
+        	
+        	$softwares=array();
+        	
+        	while($row=mysql_fetch_row($resource)){
+        		$temp=new software;
+        		$temp->software_id=$row[0];
+	                $temp->software_name=$row[1];
+	                $temp->software_description=$row[2];
+	                $temp->software_code=$row[3];
+	                $temp->software_dateAdded=$row[4];
+	                $temp->software_version=$row[5];
+	                $temp->software_status=$row[6];
+	                $temp->software_flyer=$row[7];
+	                $temp->software_savedFlyer=$row[8];
+	                $temp->software_type=$row[9];
+	                $softwares[]=$temp;
+	                
+        	}
+        	
+        	return $softwares;
+        	
+        }
+        public function addSoftware($software_name,$description="",$version=0){
+        	
+        	if($software_name=="")
+        		return System::getWarningText("Please enter software name.");
+        	
+        	if($description=="")
+        		return System::getWarningText("Please enter software description");
+        
+        $code=$this->generateProductCode();
+        	
+         $results=$code==false ? System::getwariningText("Product Code is in use.") : $this->db->insertQuery(array("software_name","software_description","product_code","date_added","software_version"),
+         	 "softwares",array("'$software_name'","'$description'","'$code'","CURRENT_DATE()","'$version'"));
+
+         return $results==""? System::successText("Product added successfully "): $results; 
+         
+        }
+        public function registerSoftware($client_id,$software_id,$copy_code,$machine_details,$registerC=false){
+        	
+        	$this->db->insertQuery(array("software_id","client_id","status","max_copies"),"mysoftware",array($software_id,$client_id,1,1));
+        	
+        	if($registerC)
+        		$this->registerCopy($client_id,$software_id,$copy_code,$machine_details);
+        	
+        	return true;
+        	
+        }
+        private function registerCopy($client_id,$software_id,$copy_code=0,$machine_details){
+        
+        	$this->db->insertQuery(array("software_id","client_id","status","machine_details","date_aquired","copycode"),
+        		"software_copies",array($software_id,$client_id,1,"'$machine_details'","CURRENT_DATE()","'$copy_code'"));
+        	return true;
+        	
+        }
+        public function adjustMaxCopies($client_id,$software_id,$copies=0){
+        	
+        	$this->db->updateQuery(array("max_copies=$copies"),"mysoftware"," where client_id=".$client_id." and software_id=".$software_id." ");
+        	return true;
+        	
+        }
+        public function updateSoftwareDescription($software_id=0,$desc=""){
+        	
+        	$this->db->updateQuery(array("software_description='$desc'"),"softwares","where id=".$software_id);
+        	
+        	System::successText("Software details updated successfully");
+        	
+        }
+        public function getClientsSoftwares($client_id,$added_where=""){
+        	
+        	$statuses=array();
+        	
+        	$search_id=array();
+        	
+        	        	
+        	$resource=$this->db->selectQuery(array("software_id","status","max_copies"),"mysoftware","where client_id=".$client_id." ".$added_where);
+        	 
+        	while($row=mysql_fetch_row($resource)){
+        	   
+        	   
+        	   $search_id[]=$row[0];
+        	   $statuses[$row[0]]=array($row[1],$row[2]);
+        	   
+        	}
+        	
+        	$imploded_string=count($search_id)>0 ? implode(" or id=",$search_id) : 0;
+        	        	
+        	$softwares=$this->getSoftwareList("where id=".$imploded_string);
+        	
+        		
+        	for($i=0;$i<count($softwares);$i++){
+        	
+        		$softwares[$i]->software_status=$statuses[$softwares[$i]->software_id][0];
+        		$softwares[$i]->software_maxCopies=$statuses[$softwares[$i]->software_id][1];
+        		
+        		
+        	
+        	}
+        	
+        	return $softwares;
+        	
+        }
+        public function getClientSoftwareCopies($client_id,$software_id,$added_where=""){
+        
+        	$resource=$this->db->selectQuery(array("id","software_id","client_id","status","machine_details","last_activation","expiry_date","date_aquired","copycode"),
+        		"software_copies"," where client_id=$client_id and software_id=$software_id ".$added_where);
+                
+        	$copies= array();
+        	
+        	while($row=mysql_fetch_row($resource)){
+        		
+        		$temp=new softwareCopies;
+        		$temp->software_copyId=$row[0];
+        		$temp->software_id=$row[1];
+        		$temp->software_clientId=$row[2];
+        		$temp->software_status=$row[3];
+        		$temp->software_machineDetails=$row[4];
+        		$temp->software_lastActivation=$row[5];
+        		$temp->software_expiryDate=$row[6];
+        		$temp->software_dateRegistered=$row[7];
+        		$temp->software_code=$row[8];
+        		
+        		$copies[]=$temp;
+        		
+        	}
+        	return $copies;
+        	
+        }
+        
+        public function createToken(&$status,$client_id=0,$software_id=0,$token_size=8){
+                
+        	$token="";
+        	
+        	$chars="abcdefghijklmnopqrstuvwxyz";
+                
+        	for($i=0;$i<$token_size+1;$i++){
+        		
+        		$isUpperCase=rand(0,1);
+        		$isAlpha=rand(0,1);
+        		if($isAlpha){
+        		
+        			if($isUpperCase){
+        			  $token.=strtoupper(($chars[rand(0,25)]));
+        			}else{
+        			  $token.=($chars[rand(0,25)]);
+        			}
+        		
+        		}else{
+        		
+        			$token.=rand(0,9);
+        			
+        		}
+        		
+        	}
+        	
+        	$validity=$this->checkTokenValidity($client_id,$software_id,$token);
+        	
+        	if($validity->name){
+        		$token=$this->createToken($status,$client_id,$software_id,$token_size,false);
+        	}
+        	        	
+        	return $token;
+        	
+        }
+        public function saveToken($token,$client_id,$software_id,$duration=0,$amount=0){
+                
+        	$previous_token=$this->hasPreviousToken($client_id,$software_id);
+        	
+        	
+        	
+                if($previous_token==NULL){	        
+        	
+        	        $this->db->insertQuery(array("client_id","created_date","software_id","expiry_date","token_value","token"),
+        		"tokens",array($client_id,"CURRENT_DATE()",$software_id,"ADDDATE(CURRENT_DATE(),INTERVAL $duration MONTH)",$amount,"'$token'"));
+        		
+        	}else{
+        	   	
+        		$this->db->insertQuery(array("client_id","created_date","software_id","expiry_date","token_value","token"),
+        		"tokens",array($client_id,"CURRENT_DATE()",$software_id,"ADDDATE('{$previous_token->token_expiryDate}',INTERVAL $duration MONTH)",$amount,"'$token'"));
+        		
+        	}
+        }
+        private function hasPreviousToken($client_id,$software_id){
+        	
+        	$tokens=$this->getTokens(" where client_id=$client_id and software_id=$software_id and status=1 and expiry_date>CURRENT_DATE()");
+        	
+        	for($i=0;$i<count($tokens);$i++){
+        		$this->db->updateQuery(array("status=0"),"tokens","where id=".$tokens[$i]->token_id);
+        		return $tokens[$i];
+        	}
+        	
+        	return NULL;
+        	
+        }
+        public function checkTokenValidity($client_id,$software_id,$token,$generate_unlocker=false){
+        	$results=new name_value;
+        	
+        	$tokens=$this->getTokens(" where client_id=$client_id and software_id=$software_id and sha1(token)='".sha1($token)."' and expiry_date>CURRENT_DATE()");
+        	
+        	for($i=0;$i<count($tokens);$i++){
+        		
+        		if($tokens[$i]->token_status==1){
+        		  
+        			$results->name =true;
+        			$results->value=array("Token"=>sha1($token),"CopyCode"=>"","Exp"=> base64_encode($tokens[$i]->token_expiryDate),"Username"=>"");
+        		        return $results;
+        		  
+        		}else{
+        			
+        		  $results->name =false;
+        		  $results->value="Token is disabled. Please contact your software vendor.";
+        		  return $results;
+
+        		}
+        		
+        	}
+        	$results->name=false;
+        	$results->value="Token has expired or invalid. ";
+        	return $results;
+        
+        }
+       public function getTokens($whereclause=""){
+        	$tokenlist=array();
+        	
+        	$resource=$this->db->selectQuery(array("*"),"tokens",$whereclause);
+        	
+        	while($row=mysql_fetch_row($resource)){
+        	
+        		$temp =new tokens;
+        		$temp->token_id=$row[0];
+        		$temp->token_clientId=$row[1];
+        		$temp->token_createdDate=$row[2];
+        		$temp->token_softwareId=$row[3];
+        		$temp->token_expiryDate=$row[4];
+        		$temp->token_token=$row[5];
+        		$temp->token_value=$row[6];
+        		$temp->token_type=$row[7];
+        		$temp->token_status=$row[8];
+        		
+        	 $tokenlist[]=$temp;
+        		
+        	}
+        	return $tokenlist;
+        	
+        }
+       
+        public function checkRegistrationDetails(){
+        
+        }
+        public function getSoftwareDetails(){
+        	
+        }
+        public function getCopyDetails($software_id,$client_id){
+
+        }
+        private function generateProductCode(){
+        
+        	if(isset($_POST['PROCODE'])){
+        	
+        	      if (count($this->getSoftwareList(" where product_code=".$_POST['PROCODE']))>0)
+        	      return false;
+                      
+                      return $_POST['PROCODE'];
+        	}else{
+        	
+        		return "PRO".time()."sfwy_".date("Y",time());
+        		
+        	}
+        	
+        	
+        }
+
+}
+class software{
+	public $software_id;
+	public $software_name;
+	public $software_description;
+	public $software_code;
+	public $software_version;
+	public $software_status;
+	public $software_flyer;
+	public $software_savedFlyer;
+	public $software_type;
+	public $software_maxCopies;
+	public $software_hasFlyer;
+}
+class softwareCopies extends software{
+	public $software_copyId;
+	public $software_clientId;
+	public $software_machineDetails;
+	public $software_lastActivation;
+	public $software_dateRegistered;
+	public $software_expiryDate;
+}
+class tokens{
+       public $token_id;
+       public $token_clientId;
+       public $token_createdDate;
+       public $token_softwareId;
+       public $token_expiryDate;
+       public $token_value;
+       public $token_type;
+       public $token_status;
+}
+?>

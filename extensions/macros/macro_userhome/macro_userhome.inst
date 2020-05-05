@@ -1,0 +1,90 @@
+<extension>
+  
+  <devinfo>Eric Wekesa</devinfo>
+  
+   <type>macro</type>
+   
+   <intype>0</intype>
+   
+   <forsup>0</forsup>
+   
+   <extTitle>User Home</extTitle>
+   
+   <desc>Default page for users</desc>
+   
+   <vers>1<vers>
+   
+   <extname>macro_userhome</extname>
+   
+   <files> 
+	<ifn>
+	 
+	 <path>macro_userhome/macro_userhome.inst</path>
+	 
+	 <content><extension>
+  
+  <devinfo>Eric Wekesa</devinfo>
+  
+   <type>macro</type>
+   
+   <intype>0</intype>
+   
+   <forsup>0</forsup>
+   
+   <extTitle>User Home</extTitle>
+   
+   <desc>Default page for users</desc>
+   
+   <vers>1<vers>
+   
+   <extname>macro_userhome</extname>
+   
+   <files> 
+	<ifn>
+	 
+	 <path>macro_userhome/macro_userhome.php</path>
+	 
+	 <content><?php
+function macro_userhome(){
+
+  $layout=new macro_layout;
+  
+  $layout->setWidth("762px");
+  
+  $layout->showLayout();
+  
+  
+  return true;
+
+}
+
+?></content>
+	
+	</ifn></files>
+  
+  </extension></content>
+	
+	</ifn> 
+	<ifn>
+	 
+	 <path>macro_userhome/macro_userhome.php</path>
+	 
+	 <content><?php
+function macro_userhome(){
+
+  $layout=new macro_layout;
+  
+  $layout->setWidth("762px");
+  
+  $layout->showLayout();
+  
+  
+  return true;
+
+}
+
+?></content>
+	
+	</ifn></files>
+  
+  </extension>

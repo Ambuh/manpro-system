@@ -1,0 +1,1709 @@
+<?php
+
+define("OPTION_MODULES",0);
+            
+define("OPTION_LIB_ETC",1);
+            
+define("OPTION_MACRO",2);
+            
+define("OPTION_PLUGIN",3);
+
+include_once("file_handler.php");
+	  
+class loadControlScript{
+    public function __construct(){
+            
+    if(defined("NOT_DEFAULT")){
+    ?>
+    <script type="text/javascript" src="../library/scripts/controls.js" language="javascript" ></script>
+    <link rel="stylesheet" href="../system/layout_css.css" type="text/css" >
+    <link rel="stylesheet" href="../library/scripts/css/jquery.datepick.css" type="text/css" />
+   	
+    <?php
+    }else{
+    ?>
+    <link rel="stylesheet" href="system/layout_css.css" type="text/css" >
+    
+    <script type="text/javascript" src="library/scripts/controls.js" language="javascript" ></script>
+    <link rel="stylesheet" href="library/scripts/css/jquery.datepick.css" type="text/css" />
+    
+    <?php
+    }
+ }
+}
+class System{
+    
+    public static function warningText($text,$style=""){
+        
+        if($text!=""){
+            
+          echo "<div id=\"warning_msg\" style=\"$style\">".$text."</div>";
+          
+        }
+        
+    }
+
+    public static function getWarningText($text,$style=""){
+        
+        if($text!=""){
+            
+          return "<div id=\"warning_msg\" style=\"$style\">".$text."</div>";
+          
+        }
+        
+    }
+
+	public static function enableDatePicker(){
+	
+	if(defined("EN_PICKER")) return;
+	
+	if(defined("NOT_DEFAULT")){	
+	?>
+	  <script language="javascript" type="text/javascript" src="../library/scripts/jquery-1.6.1.min.js"></script>
+    
+    <script language="javascript" type="text/javascript" src="../library/scripts/jquery.datepick.js"></script>
+
+	<?php 
+	}else{
+	?>
+    <script language="javascript" type="text/javascript" src="library/scripts/jquery-1.6.1.min.js"></script>
+    <!--<script language="javascript" type="text/javascript" src="library/scripts/jquery.datepick.ext.min.js"></script>-->
+     <script language="javascript" type="text/javascript" src="library/scripts/jquery.datepick.js"></script>
+    <?php
+	}
+	
+	define("EN_PICKER",1);
+	
+	}
+	public static function enableTimePicker(){
+	
+	if(defined("NOT_DEFAULT")){	
+	?>
+	  <script language="javascript" type="text/javascript" src="../library/scripts/jquery-1.6.1.min.js"></script>
+     <script language="javascript" type="text/javascript" src="../library/scripts/jquery-ui-sliderAccess.js"></script>
+     <script language="javascript" type="text/javascript" src="../library/scripts/jquery-ui-timepicker-addon.js"></script>
+
+	<?php 
+	}else{
+	?>
+    <script language="javascript" type="text/javascript" src="library/scripts/jquery-1.6.1.min.js"></script>
+    <script language="javascript" type="text/javascript" src="library/scripts/jquery-ui-sliderAccess.js"></script>
+    <script language="javascript" type="text/javascript" src="library/scripts/jquery-ui-timepicker-addon.js"></script>
+    <?php
+	}
+
+	define("EN_TIMEPICKER",1);
+	
+	}
+	public static function getUserEmail($id){
+	
+	 GLOBAL $db;
+	 
+	 $users=$db->getUserDetails("where id=".$id);
+	 
+	 for($i=0;$i<count($users);$i++){
+	 
+	   return $users[$i]->email_address;
+	 
+	 }
+	
+	 return NULL;
+	 
+	}
+	public static function getTimeFields($pref){
+	  $hour=new input;
+	  $hour->addItem(-1,"H");
+	  $hour->setHourValues();
+	  $hour->setClass("form_select");
+	  $hour->select($pref."_hour");
+	  
+	  $min=new input;
+	  $min->addItem(-1,"M");
+	  $min->setMinuteValues();
+	  $min->setTagOptions("style=\"margin-left:3px;\"");
+	  $min->setClass("form_select");
+	  $min->select($pref."_minute");
+
+      $ampm=new input;
+	  $ampm->setAmPm();
+	  $ampm->setTagOptions("style=\"margin-left:3px;\"");
+	  $ampm->setClass("form_select");
+	  $ampm->select($pref."_ampm");
+
+	  
+	  return $hour->toString().$min->toString().$ampm->toString();
+	}
+	public static function getDefaultProfileImage($gender){
+	
+	$path="../";
+	
+    if(!defined("NOT_DEFAULT"))
+	 $path="";
+
+	
+	return "<div id=\"prof_image\"><img src=\"{$path}images/profile/default{$gender}.png\" width=\"120px\" height=\"120px\"/></div>";
+	
+	}
+	public static function popupBox($contents,$id,$style=""){
+	
+	$content=new objectString;
+	
+	$content->generalTags("<div id=\"$id\" class=\"pop_up\" style=\"$style \"><div style=\"width:100%;overflow:hidden; margin-bottom:3px;border-bottom:1px solid #444;\"><div id=\"closebn\" onmousedown=\"showHideDiv('$id','none')\" >Close X</div></div>$contents</div>");
+	
+	return $content->toString();
+	
+	}
+	public static function showImage($image){
+		
+		$path="../";
+	
+    if(!defined("NOT_DEFAULT"))
+	 $path="";
+
+	
+	return "<div id=\"prof_image\"><img src=\"{$path}$image\" width=\"120px\" height=\"120px\"/></div>";
+		
+	}
+	public static function getSiteSubfolders(){
+	
+	  $myroot=defined("ADMIN_ROOT") ? ADMIN_ROOT : ROOT;	
+		
+	  return str_replace(str_replace("\\","/",$_SERVER['DOCUMENT_ROOT']),"",str_replace("\\","/",$myroot));
+
+		
+	}
+	public static function matchArrayValues($name_value,$swapvalues){
+		
+		for($i=0;$i<count($name_value);$i++){
+		 $name_value[$i]->name=$swapvalues[$name_value[$i]->value];
+		}
+		return $name_value;
+	}
+	public static function getPostedItems($prefix,$type=0){
+     $array=array();
+	 
+	 $keys=array_keys($_POST);
+	 
+	 if($type==1)
+	 $keys=array_keys($_FILES);
+	 	 
+	 for($i=0;$i<count($keys);$i++){
+	 
+	 if(preg_match("/$prefix/i",$keys[$i])){
+	   
+	   $temp=new name_value;
+	  
+	   $temp->name=$keys[$i];
+	   
+	   if($type==0){
+	   $temp->value=$_POST[$keys[$i]];
+	   }else{
+	   $temp->value=$_FILES[$keys[$i]]['name'];
+	   }
+	   $array[]=$temp;	 
+	  
+	  }
+	  
+	 }
+	 
+	 return $array;	
+	
+    }
+	public static function getDaysOfTheWeek(){
+	
+	return array(new name_value("Monday",0),new name_value("Tuesday",1),new name_value("Wednesday",2),new name_value("Thursday",3),new name_value("Friday",4),new name_value("Saturday",5),new name_value("Sunday",6));
+	
+	}
+	public static function getDay(){
+	
+	return date("l",time());
+	
+	}
+	public static function getTodaysDate(){
+	
+	 return date("d",time())."/".date("M",time())."/".date("Y",time());
+	
+	}
+	public static function getDayValue(){
+	
+	$days=self::getDaysOfTheWeek();
+
+     for($i=0;$i<count($days);$i++){
+		 
+	  if($days[$i]->name==self::getDay())
+	  return $i;
+	 //echo $days[$i]->name."<br/>";
+	 }
+    	
+	}
+	public static function isAbove18(){
+	
+	 return "-6588";
+	
+	}
+	public static function getDayById($id){
+	
+	$days=self::getDaysOfTheWeek();
+	
+	$day=self::getArrayElementValue($days,$id,0);
+	
+	if($day->value!=0)
+	return $day->name;
+	
+	return "Invalid day";
+	
+	}
+	public static function ajaxViewMoreButton($id="id",$content="",$params="",$style="float:right;"){
+
+	 $ajaxdiv=new input;
+	 
+	 $ajaxdiv->enableAjax(true);
+	 
+	 $ajaxdiv->setTagOptions("style=\"$style\"");
+	 
+	 $ajaxdiv->setClass("a_viewmore");
+	 
+	 $ajaxdiv->showAjaxProgress();
+	 
+	 $ajaxdiv->setId($id);
+	 
+	 $ajaxdiv->ajaxDiv($id,"<div style=\"display:none;\">$content</div>",$params);
+	
+	 return $ajaxdiv->toString();
+		
+	}
+	public static function resetPassword(&$option_status=""){
+		
+		GLOBAL $db;
+		$mail=new mailMessenger;
+		
+		if(isset($_POST["psttype"])){
+			
+			if($_POST["psttype"]==2){
+				
+				if(($_POST['client_email']=="")|(!preg_match("/@/i",$_POST['client_email']))||(count(explode(".",$_POST['client_email']))<2)){
+					
+				define("RESET_MESSAGE",self::getWarningText("Error! Invalid email address","text-align:center;"));
+				$option_status->name=2;
+				$option_status->value=false;
+								
+				}else{
+				
+				$users=$db->getUserDetails("where email='".$_POST['client_email']."'");
+				
+				for($i=0;$i<count($users);$i++){
+				
+				 $mess=new XMessage;
+				 
+				 $mess->message_content="Dear ".$users[$i]->firstname."<br/><br/>";
+				 
+				 $mess->message_content.="Please click on the link below to reset your password.<br/>";
+				 
+				 $mess->message_content.="<a href=\"http://".$_SERVER["HTTP_HOST"]."/".self::getSiteSubfolders()."?reset_token=".$db->generateUserToken($users[$i]->id)."&email=".$_POST['client_email']."\">Reset password</a><br/><br/>";
+				 
+				 $mess->message_content.="Admin.";
+				 
+				 $mess->message_subject="Passord reset";
+				 
+				 $mess->message_to=$_POST['client_email'];
+				 
+				 $mail->sendMessage($mess);
+				
+				 define("RESET_MESSAGE",self::info("Reset link has been sent to your email address.","margin-top:30px;float:left;font-weight:bold;color:#60a719;"));
+				 
+				 $option_status->name=2;
+				 
+				 $option_status->value=true;
+				
+				 return;
+				
+				}
+				
+				 define("RESET_MESSAGE",self::getWarningText("Error email address not found.","text-align:center;"));
+				 
+				 $option_status->name=2;
+				$option_status->value=False;
+
+				
+			
+				}
+				
+			
+			}else{
+			
+			 $users=$db->getUserDetails("where email='".$_POST['client_email']."'");
+				
+				if(($_POST['client_email']=="")|(!preg_match("/@/i",$_POST['client_email']))||(count(explode(".",$_POST['client_email']))<2)){
+					
+				define("RESET_MESSAGE",self::getWarningText("Error! Invalid email address","text-align:center;"));
+				$option_status->name=0;
+				$option_status->value=false;
+				return;		
+				}else{
+				$found=false;
+				for($i=0;$i<count($users);$i++){
+			
+			    		    
+			     $mess=new XMessage;
+				 
+				 $mess->message_content="Dear ".$users[$i]->firstname."<br/><br/>";
+				 
+				 $mess->message_content.="Please find your username below.<br/>";
+				 
+				 $mess->message_content.="<strong>Username</strong>: {$users[$i]->username}<br/>";
+				 				 
+				 $mess->message_content.="Admin.";
+				 
+				 $mess->message_subject="Username reminder";
+				 
+				 $mess->message_to=$_POST['client_email'];
+				 
+				 $mail->sendMessage($mess);
+
+			
+			    define("RESET_MESSAGE",self::info("Username sent to your email address."."<a  class=\"form_button\" style=\"margin-left:150px; margin-top:20px;float:left;padding:4px 5px 4px 5px;color:#ffffff;text-decoration:none;\" href=\"?\">Login</a>","margin-top:30px;float:left;font-weight:bold;color:#60a719;"));
+				
+				$option_status->name=0;
+				$option_status->value=true;
+				return;
+				}
+				define("RESET_MESSAGE",self::getWarningText("Error! email address not found.","text-align:center;"));
+				 
+				 $option_status->name=0;
+				$option_status->value=False;
+				}
+			}
+		
+		
+		}
+		
+		if(isset($_GET['reset_token'])&&(isset($_GET['email']))){
+		
+		 $users=$db->getUserDetails("where email='".$_GET['email']."'");
+		 $found=false;
+		 for($i=0;$i<count($users);$i++){
+		   $found=true;
+		   if(($users[$i]->token==$_GET['reset_token'])&&(time()-$users[$i]->tokenTime<3600)){
+		   
+		    if(isset($_POST['account_email'])){
+		   if(($_POST['new_password']==$_POST['repeat_password'])&&($_POST['new_password']!="")&&($_POST['repeat_password']!="")){
+			
+			 $db->updatePassword($_POST['new_password'],$users[$i]->id);
+			 
+			 define("RESET_MESSAGE",self::info("Password reset succeeded.","margin-top:30px;float:left;font-weight:bold;color:#60a719;")."<a  class=\"form_button\" style=\"margin-left:150px; margin-top:20px;float:left;padding:4px 5px 4px 5px;color:#ffffff;text-decoration:none;\" href=\"?\">Login</a>");
+			
+			
+			$option_status->name=-1;
+			$option_status->value=false;
+			
+			return;
+			
+			}else{
+				
+				 define("RESET_MESSAGE",self::info("Password missmatch.","color:#FF0000;"));
+				
+			}
+			
+			$option_status->name=-1;
+			$option_status->value=true;
+			
+			return;
+			
+			}
+			
+			$option_status->name=-1;
+			$option_status->value=true;
+			
+		   
+		   }else{
+		  
+		   define("RESET_MESSAGE",self::info("Invalid or expired token!","color:#FF0000;float:left;margin-top:10px;"));
+		    $option_status->name=-1;
+				$option_status->value=False;
+               return;
+		   }
+		   
+		 }
+		if(!$found){
+			define("RESET_MESSAGE",self::info("Invalid or expired token!","color:#FF0000;float:left;margin-top:10px;"));
+		    $option_status->name=-1;
+				$option_status->value=False;
+		}
+		}
+		
+		
+		if(!defined("RESET_MESSAGE")){
+			define("RESET_MESSAGE","");
+			
+		}
+		
+	}
+	public static function getMultiplePostedItems($prefix_array){
+     $array=array();
+	 
+	 $keys=array_keys($_POST);
+	 
+	 for($i=0;$i<count($keys);$i++){
+	 
+	 for($b=0;$b<count($prefix_array);$b++){
+	 
+	 if(preg_match("/{$prefix_array[$b]}/i",$keys[$i])){
+	    
+	   $temp=new name_value;
+	  
+	   $temp->name=$keys[$i];
+	  
+	   $temp->value=$_POST[$keys[$i]];
+	    
+	   $array[]=$temp;	 
+	  
+	  }
+	 
+	 }
+	  
+	 }
+	 
+	 return $array;	
+	
+    }
+	public static function genderTypeText($type){
+	  
+	  $gender="Male";
+	  
+	  if($type==1){
+	  
+	    $gender="Female";
+	  
+	  }
+	  
+	  return $gender; 
+	  
+	}
+	public static function nameValueToSimpleArray($pair,$numeric_key=false){
+	
+		
+	 $array=array();
+	 
+	 for($i=0;$i<count($pair);$i++){
+	  if(!$numeric_key){
+	  $array[$pair[$i]->name]=$pair[$i]->value;
+	  }else{
+	  $array[$i]=$pair[$i]->value;
+	  }
+	 }
+	 return $array;
+	
+	}
+	public static function swapNameValue($namevalueobject){
+		
+		$array=array();
+		
+		for($i=0;$i<count($namevalueobject);$i++)
+		$array[]= new name_value($namevalueobject[$i]->value,$namevalueobject[$i]->name);
+		
+		return $array;
+	
+	}
+	public static function backButton($link){
+	
+	return "<div id=\"tools\"><div id=\"bk_btn\"><a href=\"$link\"> </a></div></div>";
+	
+	}
+	public static function defaultIcon($status=0){
+	
+	  if($status){
+	  
+	    return "<div id=\"default_i\"></div>";
+	  
+	  }
+	  
+	  return "";
+	
+	}
+	public static function compareDates($date1,$date2){
+	 
+	  $firstDate_array=explode("/",$date1);
+	  
+	  $secondDate_array=explode("/",$date2);
+	  
+	  //validation check 1
+	  
+	  if((count($firstDate_array)!=3)or(count($secondDate_array)!=3)){
+	  
+	    return NULL;
+	  
+	  }
+	  
+	  //validation check 2
+	  for($i=0;$i<count($firstDate_array);$i++){
+	  
+	    if(!is_numeric($firstDate_array[$i])){
+		
+		 return NULL;
+		
+		}
+	  
+	  }
+	 
+	  for($i=0;$i<count($secondDate_array);$i++){
+	  
+	    if(!is_numeric($secondDate_array[$i])){
+		
+		 return NULL;
+		
+		}
+	  
+	  }
+	  
+	  $yearOk=false;
+	  
+	  for($i=2;$i>-1;$i--){
+	  
+	    if(($firstDate_array[$i]<$secondDate_array[$i])&&($i==1)&&($yearOk==true)){
+		
+		  return false;
+		
+		}else{
+		
+		 if(($firstDate_array[$i]<$secondDate_array[$i])){
+		 
+		   return false;
+		 
+		 }else{
+		 
+		  if(($firstDate_array[$i]>$secondDate_array[$i]))
+		  
+		  return true;
+		 
+		 
+		 }
+		
+		}
+		
+		if($i==2){
+		  
+		    $yearOk=true;
+		  		
+		}
+	  
+	  }
+	 
+	 return true;
+	 
+	}
+	public static function userType($type){
+	
+	switch($type){
+	 case 0:
+	 return "User";
+	 
+	 case 1:
+	  return "Admin";
+	
+	 case 9:
+	 return "Super Admin";
+	 
+	}
+	
+	}
+	
+	public static function installExtension($from){
+	
+	$handler=new file_handler;
+	
+	return $handler->installExtension($from);
+	
+	}
+	
+	public static function deleteFolder($path){
+	
+	  $handler=new file_handler;
+	  
+	  return $handler->deleteFolder($path);
+	
+	}
+	public static function createInstallationFile($path,$given_name){
+	
+	 $handler=new file_handler;
+	 
+	 
+	 $handler->createInstallationFile($path,$given_name,"macro","Eric Wekesa",0,0,1,"User Home","Default page for users");
+	
+	}		
+	public static function getPostValue($posted,$key){
+	 
+	 $results=NULL;
+	
+	 for($i=0;$i<count($posted);$i++){
+	  
+	   if($posted[$i]->name==$key){
+	   
+	   $results=$posted[$i]->value;
+	   
+	   break;
+	   }
+	  
+	 } 
+	 
+	 return $results;
+	
+	}
+	public static function removeFromArray($array,$value,$multiple=false){
+	
+	 $new_array=array();
+	
+	 $keys=array_keys($array);
+	
+	 for($i=0;$i<count($keys);$i++){
+	
+	  if($array[$keys[$i]]!=$value){
+	  
+	    $new_array[]=$array[$keys[$i]];
+        
+		if(!$multiple) break;
+		 	  
+	  }
+	  
+	 }
+		
+	return $new_array;
+		
+	} 
+	
+	public static function shared($libname,$param=""){
+		
+	
+	$path=ROOT."library/shared/".$libname.".php";
+	
+	  if(file_exists($path)){
+		   
+		    include_once($path);
+			
+			return $libname($param);
+		   
+		 }else{
+		     
+			 self::warningText("Shared service error: $libname Not Found");
+			 
+			 return NULL;
+			 
+		}
+	
+	}
+	public static function loadFromExtensions($type,$extension_name){
+	
+	 switch($type){
+		 
+		 case OPTION_MACRO:
+		 
+		 $path=ROOT."extensions/macros/".$extension_name."/share.php";
+		 
+		 if(file_exists($path)){
+		   
+		   include_once($path);
+		   
+		   return $extension_name();
+		
+		 }else{
+		 
+		  self::warningText("Shared service error: $extension_name not found or could not be shared");
+		 
+		 }
+		 break;
+		 
+		 case OPTION_MODULE:
+		 
+		 $path=ROOT."extensions/macros/".$extension_name."/share.php";
+		 
+		 if(file_exists($path)){
+		   
+		   include_once($path);
+		   
+		   return $extension_name();
+		
+		 }else{
+		 
+		  self::warningText("Shared service error: $extension_name not found or could not be shared");
+		 
+		 }
+		 break;
+	 default:
+	    self::warningText("Shared service error: invalid option");
+	 
+	 }
+	
+	}
+    public static function successText($text,$style=""){
+        
+       if($text!=""){
+        
+         return "<div id=\"success_msg\" style=\"$style\" >".$text."</div>";
+         
+       }
+       
+    }
+    public static function userInfo(){
+        
+        if(defined("REASON")){
+            
+    ?>
+    
+     <div class="title_mes">Alert:</div>
+        
+    <div class="mess_cont"><?php echo REASON; ?></div>
+        
+    <?php
+    
+        }
+    }
+	public static function adminPageTitle($macro_name,$title){
+	?>
+    <div id="system_title_bar" style="overflow:hidden;">
+<img src="<?php echo "../".system::macro_path()."$macro_name/".$macro_name.".jpg"; ?>" width="40px" height="40px" style="cursor: pointer;"/><div id="main_title"><?php echo $title; ?></div></div>
+    <?php
+	}
+	public function userPageTitle($macro_name,$title,$style="",$ext="jpg"){
+	
+	$add="../";
+	
+	if(!defined("NOT_DEFAULT")){
+	  
+	  $add="";
+	
+	}
+	$umanager=new Manage_user;
+	?>
+    <div id="system_title_bar" style="overflow:hidden;<?php echo $style ?>">
+<img src="<?php echo $add.system::macro_path()."$macro_name/".$macro_name.".".$ext; ?>" width="40px" height="40px" style="cursor: pointer;"/><div id="main_title"><?php echo $title; ?></div><?php if($umanager->isLoggedIn(false)){?><div style="float:right;margin-right:5px;"><a href="?logout=1" style="color:#933;font-size:12px;" title="Log Out">Logout</a></div><?php } ?></div>
+    <?php
+	}
+	public static function itemTitle($title){
+	
+     return "<div id=\"item_title\">$title</div>";
+    
+	}
+	public static function info($inf,$style=""){
+	  $mystyle=$style=="" ? "" : "style=\"$style\"";
+	  return "<div class=\"mess_cont\" $mystyle >$inf</div>";
+	}
+    public static function macro_path(){
+        return "extensions/macros/";
+    }
+	public static function getCheckerNumeric($id){
+	
+	 if(isset($_GET[$id])&&!is_numeric($_GET[$id])){
+	 
+	   unset($_GET[$id]);
+	   
+	   return 0;
+	 
+	 }
+	 if(!isset($_GET[$id])){
+	   return 0;
+	 }
+	 return $_GET[$id];
+	}
+	public static function postChecker($id){
+	 
+	 if(!isset($_POST[$id])){
+	   return 0;
+	 }
+	 return $_POST[$id];
+	}
+	public static function headerCheckbox($id,$target_prefix,$total){
+	
+	 return "<input type=\"checkbox\" id=\"$id\" onclick=\"checkUncheck('$id','$target_prefix',".$total.")\" />";
+	
+	}
+	public static function checkbox($id,$head_checkbox,$value){
+	
+	 return "<input type=\"checkbox\" name=\"$id\" id=\"$id\" onclick=\"resetChecker('$head_checkbox')\"  value=\"$value\" />";
+	
+	}
+	public static function appInnerTitle($title){
+	 return "<div id=\"app_titles\">$title</div>";
+	}
+	public static function categoryTitle($title,$style=""){
+	 
+     return "<div id=\"app_titles2\" style=\"$style\">$title</div>";
+     
+	}
+	public static function contentTitle($title,$style=""){
+	return "<div id=\"app_titles3\" style=\"$style\">$title</div>";
+	}
+	public static function pluginType($index){
+
+    $arr=array("General","Page Access","System Access","System Messenger");
+
+     if(isset($arr[$index])){
+      return $arr[$index];
+     }
+     return "Undefined";
+ 
+     }
+	 public static function moduleType($index){
+	  $var="General";
+	  
+	  if($index==1){
+	  
+	    $var="Menu";
+	  
+	  }
+	    return $var;
+	 }
+	public static function statusIcon($type=0,$style=""){
+	
+	if($type==0){
+	
+	return "<div id=\"disab\" style=\"$style\"></div>";
+	
+	}else{
+	
+	 return "<div id=\"enab\" style=\"$style\"></div>";
+	
+	}
+	
+	}
+	public static function formatDate($date){
+	
+	
+	 if($date==""){
+
+       return "0000-00-00";
+
+     }
+
+       $arr=explode("/",$date);
+
+       return $arr[2]."-".$arr[1]."-".$arr[0];
+
+	}
+	public function getCurrentDate($getString=false){
+	
+	 if($getString){
+	
+	 return date('j',time())." - ".date('M',time())." - ".date('Y',time());
+	
+	}else{
+	
+	 return date('j',time())."/".date('m',time())."/".date('Y',time());
+	
+	}
+	
+	}
+	public static function getTimeToDbFormat($prefix){
+		 
+	$hour=self::postChecker($prefix."_hour");
+	
+	$min=self::postChecker($prefix."_minutes");
+	
+	if(self::postChecker($prefix."_ampm")==1)
+	$hour=self::postChecker($prefix."_hour")>11 ? 00 : (12+self::postChecker($prefix."_hour"));
+	
+	return $hour.":".$min;
+	
+	}
+	public static function radioStatus($radioname,$status){
+	
+	$input_enable=new input;
+	
+    $input_disable=new input;
+
+    if($status){	
+	$input_enable->setTagOptions("checked=\"checked\"");
+	}else{
+	$input_disable->setTagOptions("checked=\"checked\"");
+	}
+	
+	$input_enable->input("radio","$radioname","1");
+	
+	$input_disable->input("radio","$radioname","0");
+	
+	return "<div id=\"mini_label\">Enabled</div>{$input_enable->toString()}<div id=\"mini_label\">Disabled</div>{$input_disable->toString()}";
+	
+	}
+	public static function hardRefresh(){
+	unset($_SESSION[self::getSessionPrefix().'menus']);
+	unset($_SESSION[self::getSessionPrefix().'plugins']);
+	}
+	public static function getSessionPrefix(){
+	 $config=new config;
+	 return $config->session_Prefix;
+	}
+	public static function getArrayElementValue($array,$index,$default_value=""){
+	
+	  if(isset($array[$index])){
+	  
+	   return $array[$index];
+	  
+	  }
+	
+	  return $default_value;
+	} 
+	public static function getElementValuesOf($array,$index_prefix){
+	
+	  $thisarray=array();
+	  
+	  $keys=array_keys($array);
+	  
+	  for($i=0;$i<count($keys);$i++){
+	  
+	    if(preg_match("/$index_prefix/i",$keys[$i])){
+		
+		 $thisarray[]=$array[$keys[$i]];
+		
+		}
+	  
+	  }
+	  
+	  return $thisarray;
+	  
+	} 
+public static function generateAjaxParams($target="",$object="",$parameter="",$event="onchange",$type=OPTION_MACRO,$Rand="",$index=0){
+
+    $params=new ajaxParameter;
+ 
+    $params->response_target=$target;
+ 
+    $params->response_object=$object;
+ 
+    $params->response_type=$type;
+ 
+    $params->ajax_parameter=$parameter;
+ 
+    if($Rand==""){
+    $params->ajax_id=rand();
+    }else{
+	
+	$params->ajax_id=$Rand;
+	define("AJ_RD".$index,$Rand);
+	
+	}
+    $params->ajax_event=$event;
+ 
+    return $params;
+
+}
+	
+}
+class form_control{
+
+private $validation_script;
+ 
+private $validation_fields;
+
+private $encription="";
+
+public function setValidationScript(){
+
+ $this->valudation_script=$sc;
+
+}
+public function enableUpload(){
+$this->encription="enctype=\"multipart/form-data\"";
+}
+public function __construct($validation_cript=""){
+
+  $this->validation_script=$validation_cript;
+   
+}
+public function formHead($alternateUrl=""){
+
+return "<form action=\"$alternateUrl\" {$this->encription} method=\"post\" onsubmit=\"{$this->validation_script}\" style=\"float:left;width:100%;\">";
+
+}
+
+}
+class list_control extends objectString{
+//list settings
+private $script_rowMouseover;
+private $script_rowMouseOut;
+private $color_rowAlternate;
+private $headerFont_bold=false;
+private $color_background="none";
+private $list_width;
+private $list_height;
+private $list_id="";
+private $column_names=array();
+private $column_sizes=array();
+private $items=array();
+private $title="";
+public function setMouseEffectFunctions($moseover="",$mouseout=""){
+
+  $this->script_rowMouseover=$moseover;
+
+  $this->script_rowMouseOut=$mouseout;
+
+}
+public function setListId($list_id){
+$this->list_id=$list_id; 
+}
+public function setAlternateColor($alternate_color){
+  $this->color_rowAlternate=$alternate_color;
+}
+public function setHeaderFontBold(){
+$this->headerFont_bold=true;
+}
+public function setSize($width,$height){
+$this->list_width=$width;
+$this->list_height=$height;
+}
+public function addItem($item){
+  $this->items[]=$item;
+}
+public function setColumnNames($names){
+$this->column_names=$names;
+}
+
+public function setColumnSizes($column_sizes){
+$this->column_sizes=$column_sizes;
+}
+public function setBackgroundColour($color){
+ $this->color_background=$color; 
+}
+public function setTitle($title){
+ $this->title=$title;
+}
+public function showList($status=false){
+ $this->setMode($status);
+ $this->generalTags("<script type=\"text/javascript\">");
+ $this->generalTags("function mouseon{$this->list_id}(rowid){") ;
+ $this->generalTags("document.getElementById(rowid).style.background=\"{$this->color_rowAlternate}\"; }");
+ $this->generalTags(" function mouseout{$this->list_id}(rowid){
+ document.getElementById(rowid).style.background=\"none\";   
+}
+ </script>");
+ $this->divTagOpen("","listbox","style=\"width:{$this->list_width};\"");
+ 
+ if($this->title!=""){
+ $this->divTagOpen("list_controls","","");
+ $this->divTagOpen("list_title","","");
+  $this->generalTags($this->title);
+ $this->closeTag();
+ $this->closeTag();
+ }
+ //$this->divTagOpen("max_button","","title=\"Restore\"");
+ //$this->closeTag();
+// $this->divTagOpen("min_button","","title=\"Minimize\"");
+ //$this->closeTag();
+ 
+ $this->divTagOpen("title_bar","","style=\"width:$this->list_width;\"");
+ $this->divTagOpen("title_bar_inner_l","","");
+ $this->divTagOpen("title_bar_inner_r","","");
+ for($i=0;$i<count($this->column_names);$i++){
+ $this->divTagOpen("","cell","style=\"width:{$this->column_sizes[$i]};".$res=($i==count($this->column_names)-1) ? "border:none;\"":""."\"");
+ $this->divTagOpen("inner_cont","","style=\"margin-left:8px;\"");
+ $this->divTagOpen("cell_inner","",$style=($this->headerFont_bold)? "style=\"font-weight:bold;\"":"");
+ $this->generalTags( $this->column_names[$i]);
+ $this->closeTag(3);
+}
+$this->closeTag(3);
+ $this->divTagOpen("list_content","","style=\"height:{$this->list_height}; background:{$this->color_background};\"");
+ for($i=0;$i<count($this->items);$i++){
+ $this->divTagOpen("lst{$this->list_id}$i","list_row","onmouseout=\"mouseout{$this->list_id}('lst{$this->list_id}$i')\" onmouseover=\" mouseon{$this->list_id}('lst{$this->list_id}$i')\"");
+for($i2=0;$i2<count($this->items[$i]);$i2++){
+$this->divTagOpen("","cell","style=\"width:{$this->column_sizes[$i2]};".$no_border=($i2==count($this->items[$i])-1)? "border:none;\"":""."\"");
+$this->divTagOpen("cell_inner","","");
+$this->divTagOpen("inner_cont","","style=\"\"");
+$this->generalTags( $this->items[$i][$i2]);
+$this->closeTag(3);
+}
+$this->closeTag();
+}
+$this->closeTag(2);
+}
+public function toString(){
+return implode("",$this->object_buffer);
+}
+}
+class open_table extends objectString{
+private $list_width;
+private $list_height;
+private $hFontBold=false;
+private $groupHeaders=array();
+private $column_names=array();
+private $column_width=array();
+private $items_array=array();
+private $table_id="id";
+private $hover_color="";
+public function setHeaderFontBold(){
+ $this->hFontBold=true;	
+}
+public function setColumnWidths($width){
+ $this->column_width=$width;
+}
+public function setId($id){
+
+$this->table_id=$id;
+
+}
+public function setHoverColor($hover){
+
+ $this->hover_color=$hover;
+
+}
+public function setGroupHeaders($array){
+
+ $this->groupHeaders=$array;
+
+}
+public function setSize($width,$height){
+
+ $this->list_width=$width;
+
+ $this->list_height=$height;
+
+}
+public function setColumnNames($names){
+$this->column_names=$names;
+}
+public function addItem($item){
+	
+	$this->items_array[]=$item;
+	
+}
+public function showTable($status=false){
+ 
+ $this->generalTags("<script type=\"text/javascript\">");
+ $this->generalTags("function mouseon{$this->table_id}(rowid){") ;
+ $this->generalTags("document.getElementById(rowid).style.background=\"{$this->hover_color}\"; }");
+ $this->generalTags("function mouseout{$this->table_id}(rowid){
+ document.getElementById(rowid).style.background=\"none\";   
+}
+ </script>");
+	
+	//header
+	$this->generalTags("<div id=\"table_{$this->table_id}\" style=\"width:{$this->list_width};\">");
+	
+	$this->generalTags("<div id=\"header_row1\">");
+
+    for($i=0;$i<count($this->groupHeaders);$i++){
+	
+	$border="";
+	
+	if(count($this->groupHeaders)-1==$i)
+	  $border="border-right:none;";
+	
+	$fontStyle="style=\"width:{$this->column_width[$i]};font-size:14px;$border\"";
+	
+	if($this->hFontBold)
+	$fontStyle="style=\"font-weight:bold;width:{$this->column_width[$i]};font-size:14px;$border\""; 
+
+	$this->generalTags("<div class=\"cells_top\" $fontStyle >{$this->groupHeaders[$i]}</div>");
+		
+   }
+		
+	$this->generalTags("</div>");
+	
+	$this->generalTags("<div id=\"header_row\">");
+	
+	for($i=0;$i<count($this->column_names);$i++){
+	
+	$border="";
+	
+	if(count($this->column_names)-1==$i)
+	  $border="border-right:none;";
+	
+	$fontStyle="style=\"width:{$this->column_width[$i]};$border".$height=$this->column_names[$i]=="" ? "height:16px;":""."\"";
+	
+	if($this->hFontBold)
+	$fontStyle="style=\"font-weight:bold;width:{$this->column_width[$i]};$border".$height=$this->column_names[$i]=="" ? "height:16px;\"":""."\""; 
+	
+	
+	$this->generalTags("<div class=\"cells_top\" $fontStyle >{$this->column_names[$i]}</div>");
+	
+	}
+	$this->generalTags("</div>");
+
+	
+	for($i=0;$i<count($this->items_array);$i++){
+		
+		$this->generalTags("<div class=\"trow\" id=\"lst{$this->table_id}$i\" onmouseout=\"mouseout{$this->table_id}('lst{$this->table_id}$i')\" onmouseover=\" mouseon{$this->table_id}('lst{$this->table_id}$i')\">");
+		
+		for($b=0;$b<count($this->items_array[$i]);$b++){
+			
+			$border="";
+			
+			if(count($this->items_array[$i])-1==$b)
+			$border="border-right:none;";
+			
+			$this->generalTags("<div class=\"cells\" style=\"width:{$this->column_width[$b]};$border\">{$this->items_array[$i][$b]}</div>");
+
+		}
+		
+		$this->generalTags("</div>");
+		
+	}
+	$this->generalTags("</div>");
+	if($status)
+	echo $this->toString();
+	
+}
+}
+class macro_layout extends objectString{
+public $title;
+public $content;
+public $tagOptions="";
+public $show_title=False;
+protected $width="";
+public function setContent($content){
+  $this->content=$content;
+}
+public function setTagOptions($tagoptions=""){
+
+ $this->tagOptions=$tagoptions;
+
+}
+public function setWidth($width){
+$this->width="width:".$width;
+}
+public function showlayout($run_paste=true){
+
+$this->generalTags("<div id=\"comp_module\" {$this->tagOptions} ><div id=\"comp_module_top\"><div id=\"comp_module_top_l\"><div id=\"comp_module_r\"><div id=\"comp_module_top_r\"><div id=\"comp_bottom\"><div id=\"comp_bottom_l\"><div id=\"comp_bottom_r\"><div id=\"comp_innercont\" style=\"{$this->width};\">");
+
+if($this->show_title){
+ $this->generalTags("<div id=\"macro_title\" style=\"width:100%;\">{$this->title}</div>"); 
+}
+
+$this->generalTags("<div id=\"content\">{$this->content}</div></div></div></div></div></div></div></div></div></div>");
+
+if(!$run_paste){
+
+return implode("",$this->object_buffer);
+
+}else{
+
+echo implode("",$this->object_buffer);
+
+
+}
+
+}
+public function toString(){
+
+return implode("",$this->object_buffer);
+
+}
+
+}
+class tabs_layout extends macro_layout{
+    private $activeTab=0;
+    private $tabitems=array();
+    private $tabContent=array();
+public function setActiveTab($tab){
+    $this->activeTab =$tab;
+ }
+ public function addTab($tabname){
+  $this->tabsitems[]=$tabname;  
+}
+public function addTabContent($content){
+ $this->tabContent[]=$content;
+}
+private function tabs(){
+    
+	$this->generalTags("<div id=\"tabs_menu\" {$this->tagOptions}>");
+	
+  for($i=0;$i<count($this->tabsitems);$i++){
+    if($i==$this->activeTab){ 
+    
+	$this->generalTags("<div id=\"active_tab\" class=\"inactive_tab\" onclick=\"changeTab('$i','".count($this->tabsitems)."','".$this->activeTab."')\">");
+	
+	 }else{ 
+       $this->generalTags("<div id=\"tab$i\" class=\"inactive_tab\" onclick=\"changeTab('$i','".count($this->tabsitems)."','{$this->activeTab}')\">");
+       } 
+ $this->generalTags("<div class=\"inner_left\"><div class=\"inner_right\"><div class=\"active_text\">{$this->tabsitems[$i]}</div></div></div></div>");
+    
+}
+    $this->generalTags("</div>");
+    
+    }
+    public function showTabs($status=true){
+	if($this->width==""){
+	  $this->setWidth("729px");
+	}    
+      
+      $this->generalTags("<div style=\"float:left;padding-left:10px;overflow:hidden;position:relative;z-index:1;\">");
+      
+      $this->tabs();
+      for($i=0;$i<count($this->tabContent);$i++){
+          if($this->activeTab==$i){
+          $this->content.="<div id=\"active_tbc\" class=\"tabcont\">".$this->tabContent[$i]."</div>";
+          }else{
+            $this->content.="<div id=\"tbc$i\" class=\"tabcont\">".$this->tabContent[$i]."</div>";
+         }
+     }
+      $this->generalTags("</div>");
+	  
+      $this->generalTags("<div style=\"margin-top:-4px;float:left;overflow:hidden;z-index:0;position:relative;padding:0px 5px 5px 5px;\">");
+     
+	 $this->showlayout($status);
+      
+      $this->generalTags("</div>");
+     
+    }
+}
+class name_value{
+public $name;
+public $value;
+
+public function __construct($name="",$value=""){
+
+ $this->name=$name;
+ 
+ $this->value=$value;
+
+}
+
+}
+class ajaxParameter{
+    public $response_target;
+    public $ajax_id;
+    public $response_function="";
+    public $response_type;
+    public $response_object;
+    public $ajax_parameter;
+    public $ajax_event;
+	public $ajax_UseGTarget;
+}
+
+class input extends objectString{
+    private $select_items=array();
+    private $input_name;
+    private $value;
+    private $isAuto=false;
+	private $input_class="";
+	private $input_id="";
+    private $input_type;
+	private $innerTitle=array();
+	private $selected=array();
+    private $enable_ajax=false;
+    private $ajax_waitcode;
+	private $tagOptions="";
+	private $multiple="";
+	private $isDatepicker=false;
+	private $dateFormat="";
+	private $showProgress=false;
+
+public function __construct(){
+}
+public function makeDatePicker($dateFormat="",$minDate="",$maxdate=""){
+
+  $this->isDatepicker=true;
+  
+  if($dateFormat!=""){
+  
+  $mdate="";
+  
+   if($minDate!=""){
+   
+    $mdate=",minDate:".$minDate;
+   
+   }
+  
+   if($maxdate!=""){
+	 $mdate.=",maxDate:".$maxdate;
+   }
+  
+   $this->dateFormat="{dateFormat:'".$dateFormat."'$mdate}";
+
+  }
+
+}
+public function showAjaxProgress(){
+
+$this->showProgress=true;
+
+}
+public function setInnerTitle($title){
+
+  $this->innerTitle[]=$title;
+  
+}
+public function setMultiple(){
+
+    $this->multiple="multiple=\"multiple\"";
+	
+}
+
+public function setTagOptions($option){
+  $this->tagOptions=$option;
+}
+
+public function setClass($class){
+    $this->input_class=$class;
+}
+
+public function setId($id){
+    $this->input_id=$id;
+}
+public function setSelected($value){
+    $this->selected[]=$value;
+}
+public function enableAjax($status=false){
+    $this->enable_ajax=$status;
+}
+public function addAjaxWaitcode($waitcode){
+    $this->ajax_waitcode=$waitcode;
+}
+public function selectValueType($isAuto=false){
+    $this->isAuto=$isAuto;
+}
+public function setAmPm(){
+$this->addItem(-1,"Select Period");
+$this->addItem("0","AM");
+$this->addItem("1","PM");
+}
+public function setMinuteValues(){
+	for($i=1;$i<60;$i++)
+	if($i<10){
+    $this->addItem($i,"0".$i);
+	}else{$this->addItem($i,$i);}
+	$this->addItem("00","00");
+}
+public function setHourValues(){
+
+for($i=1;$i<13;$i++)
+if($i<10){
+    $this->addItem($i,"0".$i);
+	}else{$this->addItem($i,$i);}
+}
+public function ajaxDiv($id,$div_content,$ajaxparam){
+    
+    $ajx=$this->ajaxEvent($ajaxparam->ajax_event,$ajaxparam->response_type,$ajaxparam->response_object,$ajaxparam,$id,$ajaxparam->ajax_id,2,$ajaxparam->response_function);
+    
+    $ajax_function=$this->ajaxFunc($ajaxparam->response_target,$ajaxparam->ajax_id,$ajaxparam->response_function);
+            
+    $this->generalTags($ajax_function);
+    
+    $this->generalTags("<div id=\"$id\" $ajx {$this->tagOptions} class=\"{$this->input_class}\">");
+    
+    $this->generalTags($div_content);
+    
+    $this->generalTags("</div>");
+    
+}
+public function input($type,$input_name,$value="",$ajaxparam=NULL){
+    
+      if($this->enable_ajax){
+         
+		 
+            $ajx=$this->ajaxEvent($ajaxparam->ajax_event,$ajaxparam->response_type,$ajaxparam->response_object,$ajaxparam,$input_name,$ajaxparam->ajax_id,1,$ajaxparam->response_function);
+            
+            $ajax_function=$this->ajaxFunc($ajaxparam->response_target,$ajaxparam->ajax_id,$ajaxparam->response_function);
+            
+            $this->generalTags($ajax_function);
+                        
+		    if($this->isDatepicker){
+		 
+		      $this->input_class="form_input_picker";
+		 
+		    }
+						
+            $this->generalTags("<input type=\"$type\" name=\"$input_name\" id=\"{$this->input_id}\" class=\"{$this->input_class}\" value=\"$value\" {$this->tagOptions} $ajx />");
+         
+		 
+         }else{
+		 
+		 if($this->isDatepicker){
+		 
+		  $this->input_class="form_input_picker";
+		 
+		 }
+                                  
+            $this->generalTags("<input type=\"$type\" name=\"$input_name\" id=\"{$this->input_id}\" class=\"{$this->input_class}\" value=\"$value\" {$this->tagOptions} />");
+         
+         }
+       
+	if($this->isDatepicker){
+	
+	     
+     $this->generalTags("<script language=\"javascript\">");
+	
+     $this->generalTags("$(document).mouseover(function(){");
+     
+	 $this->generalTags("$('#{$this->input_id}').mouseover(");
+   
+     $this->generalTags("function(){");
+     
+     $this->generalTags("$('#{$this->input_id}').datepick({$this->dateFormat})");
+   
+     $this->generalTags("} ); } ) ; </script>");
+         
+    }
+      
+}
+public function select($input_name,$ajaxparam=NULL){
+      
+        if($this->enable_ajax){
+         
+            $ajx=$this->ajaxEvent($ajaxparam->ajax_event,$ajaxparam->response_type,$ajaxparam->response_object,$ajaxparam,$input_name,$ajaxparam->ajax_id,0,$ajaxparam->response_function);
+            
+            $ajax_function=$this->ajaxFunc($ajaxparam->response_target,$ajaxparam->ajax_id,$ajaxparam->response_function);
+            
+            $this->generalTags($ajax_function);
+            
+            $this->generalTags("<select name=\"$input_name\" ".$this->multiple." id=\"{$this->input_id}\" class=\"{$this->input_class}\" {$this->tagOptions} $ajx >");
+         
+         }else{
+		 
+         	 
+		    $this->generalTags("<select name=\"$input_name\" ".$this->multiple." id=\"{$this->input_id}\" class=\"{$this->input_class}\"  {$this->tagOptions} >");
+         
+         }
+        
+        for($i=0;$i<count($this->select_items);$i++){
+            
+          $tags=!$this->isAuto ? $this->select_items[$i]->value :  $i;
+         
+		  $sltd="";
+		  
+		  if(in_array($tags,$this->selected)){
+		  
+		   $sltd="selected=\"selected\"";
+		  
+		  }
+		  
+		  $class="";
+		  
+		  if(in_array($tags,$this->innerTitle)){
+		  
+		  $class="class=\"innertitle\" disabled=\"disabled\" ";
+		    
+		  }
+		  
+          $this->generalTags("<option value=\"$tags\" $sltd $class > {$this->select_items[$i]->name}</option>");
+          
+        }
+        
+       $this->generalTags("</select>");
+       
+}
+private function ajaxEvent($event,$type,$mod,$parameters,$this_object_id,$id=0,$restype=1,$response_function){
+return "$event=\"sendData('../plugins/ajax_handler/','ain=1&typ=$type&nm=$mod&par={$parameters->ajax_parameter}','$this_object_id',$restype,perform$id,{$this->showProgress},'{$parameters->response_target}','{$response_function}')\"";
+
+}
+private function ajaxFunc($response_target,$id=0,$response_function="",$useGtarget=false){
+   if($response_function==""){
+  
+  $G="";
+  
+   if($useGtarget){
+   
+   $G="var globalTaget$id=\"$response_target\";
+   function changeGlobal$id(tar){
+    globalTaget$id=tar;
+   }
+   ";
+   
+   $fn="document.getElementById(\"globalTaget$id\").innerHTML=xmlhttp.responseText;";
+   
+   }
+   
+  
+   return "<script>
+   
+   function perform$id(par){
+    
+	//alert(par);
+	
+		if (xmlhttp.readyState==4){
+         document.getElementById(target).innerHTML=xmlhttp.responseText;
+      }
+	  
+	 
+   } </script>";
+   }else{
+    return "<script>
+   function perform$id(){
+   
+      if(xmlhttp.readyState<4){
+        
+		
+				
+      }
+      if (xmlhttp.readyState==4){
+         $response_function;
+      }
+   } </script>";
+   }
+}
+public function addItem($item_value,$item_name){
+    $name_val=new name_value;
+   $name_val->name=$item_name;
+   $name_val->value=$item_value;
+   $this->select_items[]=$name_val;
+}
+public function addItems($items,$simple_array=false){
+	
+if(!$simple_array){
+ for($i=0;$i<count($items);$i++)
+  $this->select_items[]=$items[$i];
+}else{
+
+ $keys=array_keys($items);
+ 
+ for($i=0;$i<count($keys);$i++) 
+  $this->select_items[]=new name_value($items[$keys[$i]],$keys[$i]);
+	
+}
+
+}
+public function resetItems(){
+        $this->select_items=array();
+        $this->object_buffer=array();
+}
+public function toString(){
+    return implode("",$this->object_buffer);
+    }
+}
+class system_messages{
+public $message_id;
+public $message_title;
+public $message_content;
+public $message_actionLink;
+public $message_targetPerson;
+public $message_sentById=0;
+public $message_byName;
+public $message_status;
+public $message_actionDate;
+public function getMyMessages($id,$show_all=false){
+GLOBAL $db;
+
+$added=" and status=0";
+
+if($show_all)
+$added="";
+
+$results=$db->selectQuery(array("id","message_title","message","action_link","target_person","sent_byid","sent_byname","status","DATE_FORMAT(actiondate,'%d-%b-%Y')"),"system_messages","where target_person=".$id.$added);
+ 
+ $res=array();
+ 
+ while($row=mysql_fetch_row($results)){
+
+  $this->message_id=$row[0];
+  $this->message_title=$row[1];
+  $this->message_content=$row[2];
+  $this->message_actionLink=$row[3];
+  $this->message_targetPerson=$row[4];
+  $this->message_setById=$row[5];
+  $this->message_byName=$row[6];
+  $this->message_status=$row[7];
+  $this->message_actionDate=$row[8];
+  $res[]=$this;
+ }
+ 
+ return $res;
+ 
+}
+public function markAsRead(){
+GLOBAL $db;
+$db->updateQuery(array("status=1"),"system_messages","where id=".System::getCheckerNumeric("@M"));
+}
+public function postMessage(){
+ GLOBAL $db;
+
+ $db->insertQuery(array("message_title","message","action_link","target_person","sent_byid","sent_byname","status","actiondate"),"system_messages",array("'".$this->message_title."'","'".$this->message_content."'","'".$this->message_actionLink."&@M='",$this->message_targetPerson,$this->message_sentById,"'".$this->message_byName."'",0,"CURRENT_DATE()"));
+
+}
+}
+?>

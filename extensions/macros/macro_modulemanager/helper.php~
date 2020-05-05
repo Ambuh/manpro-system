@@ -1,0 +1,342 @@
+<?php
+class helper{
+public function mainpage(){
+
+$layout=new macro_layout;
+
+//echo system::categoryTitle("Manage Modules","margin-left:10px;width:98.5%;margin-bottom:3px;margin-top:3px;");
+
+$layout->setWidth("900px");
+
+$content=new objectString;
+
+$content->generalTags(System::backButton("?"));
+
+$content->generalTags(System::contentTitle("Modules"));
+
+$content->generalTags(System::categoryTitle("Manage Modules","margin-bottom:5px;"));
+
+$content->generalTags($this->updateStatus());
+
+$content->generalTags("<form action=\"\" method=\"Post\">");
+
+$content->generalTags($this->moduleList());
+
+
+
+$input=new input;
+
+$input2=new input;
+
+$input2->setClass("form_button_disable");
+
+$input2->input("submit","disab_btn","Disable -");
+
+$input->setClass("form_button");
+
+$input->input("submit","enable_btn","Enable");
+
+$content->generalTags("<div id=\"form_row\" style=\"border-bottom:1px solid #444;width:99%;\">{$input->toString()}{$input2->toString()}</div>");
+
+$content->generalTags("</form>");
+
+$layout->content=$content->toString();
+
+
+$layout->showLayout();
+
+}
+private function moduleList(){
+
+GLOBAL $db;
+
+$list=new list_control;
+
+
+
+$list->setColumnSizes(array("30px","30px","250px","230px","45px","100px"));
+
+$list->setSize("875px","350px");
+
+$list->setAlternateColor("#cbe7f8");
+
+$module=$db->getModules(" where for_super=0");
+
+for($i=0;$i<count($module);$i++){
+
+$list->addItem(array($i+1,"<input type=\"checkbox\" name=\"chk_$i\" id=\"chk_$i\" onclick=\"resetChecker('checker')\"  value=\"{$module[$i]->module_id}\" />","<a href=\"?{$_SERVER['QUERY_STRING']}&mopt=1&id={$module[$i]->module_id}\" title=\"Click to edit module '{$module[$i]->module_title}'. \">".$module[$i]->module_title."</a>",$module[$i]->module_name,system::statusIcon($module[$i]->module_status,"margin-left:10px"),$module[$i]->module_position));
+
+}
+
+$list->setColumnNames(array("No","<input type=\"checkbox\" id=\"checker\" onclick=\"checkUncheck('checker','chk',".count($module).")\" />","Module Title","Module Type","Status","Position"));
+
+$list->showList(false);
+
+return $list->toString();
+
+}
+private function updateStatus(){
+
+GLOBAL $db;
+
+if((isset($_POST['enable_btn']))||(isset($_POST['disab_btn']))){
+
+ $ms="Module(s) disabled";
+
+ $st=0;
+ 
+ if(isset($_POST['enable_btn'])){
+ 
+  $st=1;
+ 
+  $ms="Module(s) enabled";
+    
+ }
+ 
+ $items=system::getPostedItems("chk");
+ 
+ $array=array();
+ 
+ for($i=0;$i<count($items);$i++){
+ 
+   $array[]=$items[$i]->value;
+ 
+ }
+ 
+ $plug="";
+ 
+ if(count($array)>0){
+  $plug="where id=";
+ }
+ 
+ $str=implode(" or id=",$array);
+  
+ if(count($array)>0){
+ 
+ $db->updateQuery(array("status=$st"),"modules",$plug.$str);
+ 
+ return system::successText($ms);
+ }
+}
+
+}
+public function editPage($bk_link){
+ 
+ GLOBAL $db;
+ 
+ $id=0;
+ 
+ if(isset($_GET['id'])){
+ 
+  $id=$_GET['id'];
+  
+ }
+ 
+ $cont=new objectString;
+ 
+ $layout=new macro_layout;
+ 
+ $layout->setWidth("895px");
+ 
+ //echo system::categoryTitle("Edit Module","margin-left:10px;margin-bottom:3px;margin-top:3px;");
+ 
+ $cont->generalTags(system::backButton($bk_link));
+ 
+ $msg=$this->updateModule();
+
+ $modules=$db->getModules(" where id=$id");
+ 
+ for($i=0;$i<count($modules);$i++){ 
+ 
+ $cont->generalTags(system::contentTitle("Edit : : {$modules[$i]->module_title}"));
+ 
+ $cont->generalTags(system::categoryTitle("Edit module details"));
+
+ $cont->generalTags($msg);
+
+ $cont->generalTags("<form method=\"POST\" action=\"\">");
+ 
+ $input=new input;
+ 
+ $input->setClass("form_input");
+ 
+ $input->input("text","module_title",$modules[$i]->module_title);
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Title</strong></div>{$input->toString()}</div>");
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Show title</strong></div>".System::radioStatus("module_showtitle",$modules[$i]->module_show_title)."</div>");
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Module Name</strong></div>{$modules[$i]->module_name}</div>");
+ 
+ $enabled="";
+ 
+ $disabled="";
+ 
+ if($modules[$i]->module_status==1){
+ 
+ $enabled="checked=\"checked\"";
+ 
+ }else{
+ 
+ $disabled="checked=\"checked\"";
+ 
+ }
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Status</strong></div><div id=\"mini_label\">Enabled</div><input type=\"radio\" name=\"module_status\" $enabled value=\"1\"><div id=\"mini_label\" $disabled >Disabled</div><input type=\"radio\" name=\"module_status\" $disabled value=\"0\" ></div>");
+ 
+  
+ $select2=new input;
+ 
+ $select2->setClass("form_select");
+ 
+ $select2->addItem("0","User");
+ 
+ $select2->addItem("1","Administrator");
+ 
+ $select2->addItem("2","Special");
+ 
+ $select2->setSelected($modules[$i]->module_accesslevel);
+   
+ $select2->select("module_accesslevel");
+  
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Access Level</strong></div>{$select2->toString()}</div>");  
+ 
+ $select=new input;
+ 
+ $select->setClass("form_select");
+ 
+ $positions=system::shared('positions');
+
+ $select->setSelected($modules[$i]->module_position);
+ 
+ 
+ for($b=0;$b<count($positions);$b++){
+ 
+   $select->addItem($positions[$b],$positions[$b]);
+ 
+ }
+ 
+ $select->select("module_position");
+  
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Positions</strong></div>{$select->toString()}</div>");
+ 
+ $select=new input;
+ 
+ $select->setMultiple("multiple");
+ 
+ $select->setClass("form_select_multi");
+
+ 
+ $menu_modules=$db->getModules("where ismenu=1 and for_super=0;");
+ 
+ 
+ for($b=0;$b<count($menu_modules);$b++){
+
+  $select->addItem($menu_modules[$b]->module_id."_",$menu_modules[$b]->module_title);
+  
+  $select->setInnerTitle($menu_modules[$b]->module_id."_");
+  
+  $assign=array();
+  
+  if($modules[$i]->module_menuassign!="")  
+    $assign=unserialize($modules[$i]->module_menuassign);
+	
+	for($j=0;$j<count($assign);$j++){
+	
+	  $select->setSelected($assign[$j]);
+	
+	}
+  
+   
+  $items=$db->getMenuItems($menu_modules[$b]->module_id,true);
+  
+  for($t=0;$t<count($items);$t++){
+  
+   $select->addItem($items[$t]->item_id,$items[$t]->item_title);
+   
+    if($items[$t]->item_hasChild){
+	
+	  $array=$db->getChildItemsArray($items[$t]->item_children);
+	  
+	  for($d=0;$d<count($array);$d++){
+	  
+	    $select->addItem($array[$d]->item_id,$array[$d]->item_title);
+	  
+	  }
+	
+	}
+  
+  }
+ 
+  }
+ $select->select("module_assignment[]");
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Menu Assigment</strong></div>{$select->toString()}</div>");
+ 
+ 
+ $input=new input;
+ 
+ $input->setClass("form_input");
+ 
+ 
+ $input->input("text","module_syle_id",$modules[$i]->module_suffix);
+ 
+ $cont->generalTags("<div id=\"form_row\"><div id=\"label\"><strong>Style Id</strong></div>{$input->toString()}</div>");
+ 
+ 
+ $input=new input;
+ 
+ $input->setClass("form_button");
+ 
+ $input->input("submit","update_module","Update");
+ 
+ $cont->generalTags("<div id=\"form_row\">".$input->toString()."</div>");
+ 
+ 
+ $cont->generalTags(system::contentTitle("Advanced Settings"));
+ 
+ if(file_exists(ROOT."/extensions/modules/{$menu_modules[$i]->module_name}/settings.php")){
+ 
+ include_once(ROOT."/extensions/modules/{$menu_modules[$i]->module_name}/settings.php");
+ 
+ $cont->generalTags(set_main());
+ 
+ }else{
+   
+   $cont->generalTags("<div id=\"form_row\" >N/A</div>");
+   
+ }
+ 
+
+ 
+ $cont->generalTags("<div id=\"form_row\" style=\"border-bottom:1px solid #444;\"></div>");
+ 
+ $cont->generalTags("</form>");
+}
+ 
+ $layout->content=$cont->toString();
+ 
+ $layout->showLayout();
+ 
+}
+public function updateModule(){
+
+GLOBAL $db;
+
+if(isset($_POST['update_module'])){
+
+ $setting=system::getPostedItems("module");
+ 
+
+ //system::getPostedValue($setting,"module_assignment");
+ 
+ $db->updateQuery(array("module_title='".System::getPostValue($setting,"module_title")."'","status=".System::getPostValue($setting,"module_status"),"accesslevel=".System::getPostValue($setting,"module_accesslevel"),"menu_assign='".serialize(System::getPostValue($setting,"module_assignment"))."'","position='".System::getPostValue($setting,"module_position")."'","show_title=".System::getPostValue($setting,"module_showtitle"),"module_suffix='".System::getPostValue($setting,"module_syle_id")."'"),"modules"," where id=".$_GET['id']);
+ 
+return System::successText("Item Updated");
+ 
+}
+
+}
+
+}
+?>

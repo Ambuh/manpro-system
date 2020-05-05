@@ -1,0 +1,33 @@
+<?php
+function macro_installer(){
+
+include_once("helper.php");
+
+$helper=new helper;
+
+
+system::adminPageTitle("macro_installer","Installation Manager.");
+
+//echo system::categoryTitle("Install/Uninstall system extensions.","margin-left:10px;width:99%;margin-top:3px;");
+
+?>
+
+
+ <?php
+
+$myopt=0;
+
+if(isset($_GET['mopt'])){
+  $myopt=$_GET['mopt'];
+}
+
+switch($myopt){
+
+
+default:
+$helper->mainPage($helper->setActiveTab());
+
+}
+return true;
+}
+?>

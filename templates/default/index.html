@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title><?php echo System::getPageTitle(); ?></title>
+<link rel="stylesheet" href="<?php echo self::$template_path; ?>css/general.css" type="text/css" />
+<link rel="shortcut icon" href="<?php echo self::$template_path; ?>favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="<?php echo self::$template_path; ?>engine1/style.css" />
+<script type="text/javascript" src="<?php echo self::$template_path; ?>engine1/jquery.js"></script>
+<?php 
+  self::loadHeadScripts();
+  System::loadPageInfo();
+ ?>
+</head>
+
+<?php //echo serialize(array()); ?>
+<body>
+<div id="all">
+<div id="back">
+<div id="header" ><div id="inner_header"><a href="http://<?php echo preg_replace("/\/\//","/",System::basePath());?>" id="logo" style="border:none;"><div id="logo"></div></a>
+</div>
+<div id="menu_wrapper"><div id="wrapper_inner"><div id="menu_logo"><a id="mlog" href="http://<?php echo preg_replace("/\/\//","/",System::basePath());?>"><div style="width:20px;height:30px;float:left;"></div></a></div><?php echo $extension->loadModule('top_menu'); ?></div></div>
+</div>
+
+<?php if($extension->isAvailable('top')){ ?><div id="top_bar"><div id="inner_bar"><?php echo $extension->loadModule('top'); ?></div></div><?php } ?>
+
+<!--<div style="width:98%;height:250px;background:#444;margin:auto;"></div>-->
+
+<div id="container_main" >
+
+<div style="width:100%;overflow:hidden;float:left;">
+
+<?php if($extension->isAvailable('slot1')): ?><div id="top_slot"><?php echo $extension->loadModule('slot1'); ?></div><?php endif; ?>
+</div>
+
+<div id="container">
+
+   <div id="container_inner">
+   <div style="float:left;overflow:hidden;">
+   <?php  if($extension->isAvailable('slot3')&!(isset($_GET['views']))): ?><div  style="overflow:hidden;padding-left:5px;margin-bottom:5px;"><?php $extension->loadModule('slot3');?></div><?php endif; ?>
+    
+     
+     <div id="content_main">
+
+ <?php 
+ 
+ $extension->loadMacro();
+ 
+ ?>
+ <div style="width:70%;margin:auto;">
+ <?php $extension->loadModule('slot4'); ?>
+ </div>
+  
+      </div>
+     </div>
+      <div id="left_col">
+     <?php $extension->loadModule('left');?>  
+            
+     </div><!--end left_col-->
+    
+       
+    </div>
+ </div>
+ </div>
+
+<div id="footer"><div id="footer_labels"> &copy;<?php echo date("Y",time()); ?>.Swim Right Kenya.</div>
+</div>
+</div>
+</body>
+</html>

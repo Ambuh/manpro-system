@@ -1,0 +1,23 @@
+#app_titles,#app_titles2{
+ margin-top:10px;
+ margin-left:10px;
+ float:left;
+ overflow:hidden;
+ color: #444;
+ font-size: 12px;
+ font-weight:bold;
+ width:90%;
+}
+#app_titles2{
+ border:1px solid #eee;
+ margin-left:0px;
+ width:100%;
+ margin-top:1px;
+ border-radius:5px;
+ border:1px solid #ddd;
+ background:#eee;
+ text-indent:3px;
+ padding-top:5px;
+ padding-bottom:5px;
+ 
+}

@@ -1,0 +1,7 @@
+RewriteEngine On 
+RewriteCond %{HTTP_HOST} ^app.duatech\.co.ke [NC]
+RewriteCond %{SERVER_PORT} 80 
+RewriteRule ^(.*)$ https://app.duatech.co.ke/$1 [R,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]

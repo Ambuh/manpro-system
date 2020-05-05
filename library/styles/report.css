@@ -1,0 +1,19 @@
+table{
+    border:1px solid #bbb;
+    float:left;
+    width:80%;
+    margin: 2px 0px 2px 5%;
+}
+table tr{
+    border-bottom: 1px solid #bbb !important;
+    margin-bottom:1px;
+    border-bottom:1px solid #bbb;
+    float:left;
+    width:100%
+}
+table td{
+    border: 1px solid #bbb;
+}
+table tr td:last-child{
+    border-right: none;
+}

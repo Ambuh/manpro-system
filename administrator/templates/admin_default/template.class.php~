@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+
+<head>
+<title>Portal</title>
+<link rel="stylesheet" href="<?php echo self::$template_path; ?>css/general.css" type="text/css" />
+<?php $self::loadHeadScripts(); ?>
+</head>
+<?php //echo serialize(array()); ?>
+<body>
+<div id="all">
+<div id="header"><div id="inner_header"></div></div>
+<div id="top_menu"><div id="menu_item">Home</div></div>
+<div id="container">
+   <div id="left_col">
+     <div id="mod">
+       <div id="module_title">Main Menu</div>
+        <div id="module_inner">
+          <div class="menu_row"><a href="#">Home</a></div>
+          <div class="menu_row"><a href="#">My Account</a></div>
+          <div class="menu_row"><a href="#">Projects</a></div>
+          <div class="menu_row"><a href="#">My Applications</a></div>
+          <div class="menu_row"><a href="#">Create Ticket</a></div>
+          <div class="menu_row"><a href="#">View Tickets</a></div>
+        </div>
+     </div>
+     
+     
+      <div id="mod">
+       <div id="module_title">Services</div>
+        <div id="module_inner">
+          <div class="menu_row"><a href="#">Bulks SMS</a></div>
+        </div>
+     </div>
+      
+     </div><!--end left_col-->
+     <?php 
+     $comp_layout=new component_layout;
+      $comp_layout->title="My article";
+       $comp_layout->setWidth("729px");
+      $comp_layout->show_title=True;
+       $comp_layout->content="This it<br/><br/>";
+      $comp_layout->showlayout();
+     ?>
+
+<!--tabs-->
+<?php
+$tbs=new tabs_layout;
+$tbs->addTab("Wakoli bifwoli");
+$tbs->content="<br/><br/><br/>";
+$tbs->addTab("Wekesa Maina");
+$tbs->showTabs();
+  ?>
+  <!--list object-->
+  <?php
+  $cont =new list_control;
+  $cont->headerFont_bold=true;
+ $cont->setSize("729px","200px");
+ $cont->setBackgroundColour("#fff");
+ $cont->addItem(array("client","client","client"));
+ $cont->addItem(array("client2","client2","client2"));
+ $cont->setColumnNames(array("No.","Name","Second Name"));
+  $cont->setColumnSizes(array("150px","150px","150px;"));
+  $cont->setAlternateColor("#eee");
+  $cont->setTitle("Mytitle");
+  $cont->showList();
+  ?>
+  
+   </div>
+   
+   </div>
+
+
+<div id="footer"><div id="footer_labels">&copy;2012.Elligent Business Solutions.Client Support System</div>
+</div>
+</body>
+</html>

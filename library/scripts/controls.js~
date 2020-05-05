@@ -1,0 +1,186 @@
+var xmlhttp;
+var current_active=-1;
+function changeTab(selected_tab,tabs,init_ac){
+if(current_active==-1){
+    document.getElementById("active_tab").id="tab"+init_ac;
+    document.getElementById("active_tbc").id="tbc"+init_ac;
+    current_active=selected_tab;
+    document.getElementById("tab"+selected_tab).id="active_tab";
+    document.getElementById("tbc"+selected_tab).id="active_tbc";
+    }else{
+    document.getElementById("active_tab").id="tab"+current_active;
+    document.getElementById("active_tbc").id="tbc"+current_active;
+    current_active=selected_tab;
+    document.getElementById("tab"+selected_tab).id="active_tab";
+    document.getElementById("tbc"+selected_tab).id="active_tbc";
+    }
+ //document.getElementById("tab1").id="active_tab";
+}
+function xmlhttpObject(){
+    
+}
+function sendData(url,parameter,id,typ,callbackfunction,showprogress,target){
+    if(window.ActiveXObject){
+        xmlhttp=new ActiveXObject('Microsoft.XMLHTTP');
+    }else{
+        xmlhttp=new XMLHttpRequest();
+    }
+    parameter=parameter+getInputValue(id,typ);
+    
+    try{
+	if(showprogress){
+	document.getElementById(target).innerHTML="<i id=\"prog\" style=\"width:300px;\"><strong style=\"width:100%\">Processing...<strong></i>";
+	}
+	xmlhttpObject();
+    xmlhttp.open("POST",url,true);
+    xmlhttp.setRequestHeader("Content-Type","Application/x-www-form-urlencoded");
+    xmlhttp.onreadystatechange=function(targets){
+		if (xmlhttp.readyState==4){
+		 document.getElementById(target).innerHTML=xmlhttp.responseText;
+		}
+	}
+	xmlhttp.send(parameter);
+    	
+    }catch(e){
+        alert(e);
+    }
+}
+function getInputValue(id,typ){
+
+      switch(typ){
+		case 0:
+		    e=document.getElementById(id);
+			return e.options[e.selectedIndex].value;
+			
+        case 1:
+            return document.getElementById(id).value;
+        
+        case 2:
+            return document.getElementById(id).innerHTML;
+    }
+    return "";
+}
+function hideThis(id,clr,dv){
+	document.getElementById(id).style.display="none";
+	divcolour(clr,dv);
+}
+function showThis(id,clr,dv){
+	document.getElementById(id).style.display="block";
+	document.getElementById(id).style.overflow="visible";
+    divcolour(clr,dv);
+}
+function divcolour(color,div){
+    document.getElementById(div).style.background=color;
+}
+function checkUncheck(srcs,pref,counts){
+	
+for(i=0;i<counts;i++){
+
+  document.getElementById(pref+"_"+i).checked =document.getElementById(srcs).checked;
+
+}
+
+}
+function showHideDiv(divid,state){
+  document.getElementById(divid).style.display=state;
+}
+function hideShow(div1,div2){
+ document.getElementById(div1).style.display="none";
+ document.getElementById(div2).style.display="block";
+}
+function resetChecker(id){
+	
+	document.getElementById(id).checked=false;
+	
+}
+function vField(){
+this.fieldId;
+this.fieldType;
+this.validationType;
+this.faliledMessage;
+this.successMessage;
+this.errorValue;
+}
+function validateFields(vFarray){
+status=true;
+try{
+
+for(i=0;i<vFarray.length;i++){
+ 
+    if(vFarray[i].fieldType==0){//text field validation
+	 status=validateTextField(vFarray[i]);
+	  if(status==false){
+	    return status;
+	  }
+	 }
+	
+	if(vFarray[i].fieldType==1){//selectBoxValidation
+	 status=validateSelect(vFarray[i]);
+	 if(!status){
+	    return status;
+	 }
+   }
+
+}
+}catch(e){
+	alert(e);
+}
+return status;
+}
+function validateTextField(vfarray){
+
+  switch(vfarray.validationType){
+  
+   case 0://check of empty field
+    if(document.getElementById(vfarray.fieldId).value==vfarray.errorValue){
+		alert(vfarray.failedMessage);
+		return false;
+	}
+   break;
+  
+   case 1://check if is valid numeric entry
+   
+   break;
+   
+   case 2://check for email
+   document.getElementById(vfarray.fieldId).value;
+   break;
+   
+   default:
+   
+   alert("Invalid Option");
+  
+  }
+
+}
+function matchFields(id1,id2,id3,pop_message){
+	
+	if(document.getElementById(id2).value==""){
+	
+	   return false;
+	   
+	}
+	
+	if(document.getElementById(id1).value==document.getElementById(id2).value){
+	
+	  document.getElementById(id3).innerHTML="Match";
+	  
+	  document.getElementById(id3).style.color="green";
+	
+	  return true;
+	  
+	}else{
+	  
+	  if(pop_message){
+		 
+		 alert("Missmatch");
+		 
+	  }
+	  
+	  document.getElementById(id3).innerHTML="Mismatch";
+	  
+	  document.getElementById(id3).style.color="#ff0000";
+		
+	  return false;
+	}
+}
